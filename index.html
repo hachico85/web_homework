@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>今日の宿題チェック</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <main class="main-panel" aria-labelledby="todayTitle">
+        <header class="hero">
+          <div>
+            <p class="eyebrow" id="todayLabel">今日</p>
+            <h1 id="todayTitle">今日の宿題</h1>
+          </div>
+          <div class="mascot" aria-hidden="true">
+            <span></span>
+          </div>
+        </header>
+
+        <section class="progress-box" aria-label="宿題の進み具合">
+          <div class="progress-copy">
+            <strong id="progressText">0 / 0 完了</strong>
+            <span id="progressHint">今日の宿題をチェックしよう</span>
+          </div>
+          <div class="progress-track" aria-hidden="true">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+        </section>
+
+        <section class="homework-area">
+          <div class="homework-list" id="homeworkList"></div>
+          <div class="empty-state" id="emptyState" hidden>
+            <div class="empty-icon" aria-hidden="true">✓</div>
+            <h2>今日は宿題がありません</h2>
+            <p>右の設定から、今日やる宿題を追加できます。</p>
+          </div>
+        </section>
+
+        <section class="celebration" id="celebration" aria-live="polite" hidden>
+          <div class="popper" aria-hidden="true"></div>
+          <h2>おめでとう！</h2>
+          <p>今日の宿題がぜんぶ終わりました。</p>
+        </section>
+
+        <section class="calendar-card" aria-labelledby="calendarTitle">
+          <h2 id="calendarTitle">今月のきろく</h2>
+          <div class="calendar-grid" id="calendarGrid"></div>
+          <p class="calendar-legend">💮 ぜんぶできた　👍 すこしできた　🍵 おやすみ</p>
+        </section>
+      </main>
+
+      <aside class="settings-panel" aria-labelledby="settingsTitle">
+        <div class="settings-card">
+          <h2 id="settingsTitle">設定</h2>
+          <form id="homeworkForm" class="homework-form">
+            <label class="field-label" for="homeworkName">宿題名</label>
+            <input id="homeworkName" name="homeworkName" type="text" placeholder="例：音読、計算ドリル" maxlength="40" required>
+
+            <fieldset class="mode-group">
+              <legend>いつやる？</legend>
+              <label class="radio-tile">
+                <input type="radio" name="scheduleMode" value="daily" checked>
+                <span>毎日</span>
+              </label>
+              <label class="radio-tile">
+                <input type="radio" name="scheduleMode" value="weekly">
+                <span>曜日を選ぶ</span>
+              </label>
+            </fieldset>
+
+            <fieldset class="weekday-group" id="weekdayGroup" disabled>
+              <legend>曜日</legend>
+              <label><input type="checkbox" value="1">月</label>
+              <label><input type="checkbox" value="2">火</label>
+              <label><input type="checkbox" value="3">水</label>
+              <label><input type="checkbox" value="4">木</label>
+              <label><input type="checkbox" value="5">金</label>
+              <label><input type="checkbox" value="6">土</label>
+              <label><input type="checkbox" value="0">日</label>
+            </fieldset>
+
+            <p class="form-message" id="formMessage" role="status"></p>
+            <button class="add-button" id="submitButton" type="submit">宿題を追加</button>
+            <button class="cancel-button" id="cancelButton" type="button" hidden>編集をやめる</button>
+          </form>
+        </div>
+
+        <div class="registered-card">
+          <h2>登録中の宿題</h2>
+          <div class="registered-list" id="registeredList"></div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="confetti-layer" id="confettiLayer" aria-hidden="true"></div>
+    <script src="script.js"></script>
+  </body>
+</html>

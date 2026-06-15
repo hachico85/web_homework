@@ -25,10 +25,13 @@ const elements = {
   nameInput: document.querySelector("#homeworkName"),
   formMessage: document.querySelector("#formMessage"),
   weekdayGroup: document.querySelector("#weekdayGroup"),
+  dateField: document.querySelector("#dateField"),
+  dateInput: document.querySelector("#homeworkDate"),
   registeredList: document.querySelector("#registeredList"),
   confettiLayer: document.querySelector("#confettiLayer"),
   calendarTitle: document.querySelector("#calendarTitle"),
   calendarGrid: document.querySelector("#calendarGrid"),
+  calendarDetail: document.querySelector("#calendarDetail"),
   submitButton: document.querySelector("#submitButton"),
   cancelButton: document.querySelector("#cancelButton")
 };
@@ -114,12 +117,37 @@ function todayKey() {
   return dateKey(new Date());
 }
 
-function tasksForWeekday(day) {
-  return tasks.filter((task) => task.mode === "daily" || task.days.includes(day));
+function isDueOn(task, dateStr) {
+  if (task.mode === "daily") {
+    return true;
+  }
+
+  if (task.mode === "weekly") {
+    return task.days.includes(new Date(`${dateStr}T00:00:00`).getDay());
+  }
+
+  if (task.mode === "once") {
+    // 登録した日から、チェックして完了するまで毎日出し続ける。
+    return !task.done && task.date <= dateStr;
+  }
+
+  return false;
+}
+
+function recurringTasksForWeekday(day) {
+  // 過去日の集計用。単発は日ごとの完了状態を再現できないため対象外にする。
+  return tasks.filter(
+    (task) => task.mode === "daily" || (task.mode === "weekly" && task.days.includes(day))
+  );
 }
 
 function todayTasks() {
-  return tasksForWeekday(new Date().getDay());
+  const today = todayKey();
+  const dayChecks = checks[today] || {};
+  // 単発は完了すると isDueOn が false になるが、「今日完了した」分は今日のうちは残す。
+  return tasks.filter(
+    (task) => isDueOn(task, today) || (task.mode === "once" && dayChecks[task.id])
+  );
 }
 
 function backfillSummary() {
@@ -131,10 +159,12 @@ function backfillSummary() {
       return;
     }
 
-    const due = tasksForWeekday(new Date(`${date}T00:00:00`).getDay());
+    const due = recurringTasksForWeekday(new Date(`${date}T00:00:00`).getDay());
+    const done = due.filter((task) => checks[date][task.id]);
     summary[date] = {
-      done: due.filter((task) => checks[date][task.id]).length,
-      total: due.length
+      done: done.length,
+      total: due.length,
+      names: done.map((task) => task.name)
     };
     changed = true;
   });
@@ -160,6 +190,20 @@ function pruneOldChecks() {
   }
 }
 
+function pruneFinishedOnceTasks() {
+  const today = todayKey();
+  const before = tasks.length;
+
+  // 完了済みで日付も過ぎた単発タスクは、登録リストから自動で片付ける。
+  tasks = tasks.filter(
+    (task) => !(task.mode === "once" && task.done && task.date < today)
+  );
+
+  if (tasks.length !== before) {
+    saveTasks();
+  }
+}
+
 function currentDayChecks() {
   const key = todayKey();
   if (!checks[key]) {
@@ -168,9 +212,19 @@ function currentDayChecks() {
   return checks[key];
 }
 
+function formatOnceDate(dateStr) {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const weekday = WEEKDAYS[new Date(year, month - 1, day).getDay()];
+  return `${month}月${day}日（${weekday}）`;
+}
+
 function scheduleLabel(task) {
   if (task.mode === "daily") {
     return "毎日";
+  }
+
+  if (task.mode === "once") {
+    return task.date ? formatOnceDate(task.date) : "日付未設定";
   }
 
   const days = task.days
@@ -186,7 +240,8 @@ function render() {
   const today = new Date();
   const visibleTasks = todayTasks();
   const dayChecks = currentDayChecks();
-  const completedCount = visibleTasks.filter((task) => dayChecks[task.id]).length;
+  const completedTasks = visibleTasks.filter((task) => dayChecks[task.id]);
+  const completedCount = completedTasks.length;
   const totalCount = visibleTasks.length;
   const percent = totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
   const isComplete = totalCount > 0 && completedCount === totalCount;
@@ -201,7 +256,11 @@ function render() {
       ? "ゆっくり休める日です"
       : "今日の宿題をチェックしよう";
 
-  summary[todayKey()] = { done: completedCount, total: totalCount };
+  summary[todayKey()] = {
+    done: completedCount,
+    total: totalCount,
+    names: completedTasks.map((task) => task.name)
+  };
   saveSummary();
 
   renderTodayTasks(visibleTasks, dayChecks);
@@ -233,6 +292,10 @@ function renderTodayTasks(visibleTasks, dayChecks) {
     checkbox.checked = Boolean(dayChecks[task.id]);
     checkbox.addEventListener("change", () => {
       dayChecks[task.id] = checkbox.checked;
+      if (task.mode === "once") {
+        task.done = checkbox.checked;
+        saveTasks();
+      }
       saveChecks();
       render();
     });
@@ -334,6 +397,7 @@ function startEditing(task) {
   elements.weekdayGroup.querySelectorAll("input").forEach((input) => {
     input.checked = task.days.includes(Number(input.value));
   });
+  elements.dateInput.value = task.mode === "once" ? task.date || todayKey() : "";
   updateWeekdayState();
   elements.formMessage.textContent = "";
   elements.submitButton.textContent = "保存する";
@@ -412,8 +476,51 @@ function renderCalendar() {
     stamp.textContent = key === today ? todayStamp(summary[key]) : stampFor(summary[key]);
 
     cell.append(number, stamp);
+
+    if (summary[key]) {
+      cell.classList.add("has-detail");
+      cell.addEventListener("mouseenter", () => showDayDetail(key));
+    }
+
     elements.calendarGrid.append(cell);
   }
+
+  resetDayDetail();
+}
+
+function completedNamesOn(key) {
+  // まずその日のチェック実績から、現在のタスク名で復元する（直近30日ぶん保持）。
+  const dayChecks = checks[key];
+  if (dayChecks) {
+    const names = tasks.filter((task) => dayChecks[task.id]).map((task) => task.name);
+    if (names.length > 0) {
+      return names;
+    }
+  }
+
+  // 古い日（checksが消えている）は、summaryに保存した名前を使う。
+  const entry = summary[key];
+  return entry && entry.names ? entry.names : [];
+}
+
+function showDayDetail(key) {
+  const [year, month, day] = key.split("-").map(Number);
+  const weekday = WEEKDAYS[new Date(year, month - 1, day).getDay()];
+  const label = `${month}月${day}日（${weekday}）`;
+  const names = completedNamesOn(key);
+  const entry = summary[key];
+
+  if (names.length > 0) {
+    elements.calendarDetail.textContent = `${label} にできたこと：${names.join("、")}`;
+  } else if (entry && entry.done > 0) {
+    elements.calendarDetail.textContent = `${label} は ${entry.done}個 できました`;
+  } else {
+    elements.calendarDetail.textContent = `${label} は おやすみ 🍵`;
+  }
+}
+
+function resetDayDetail() {
+  elements.calendarDetail.textContent = "日にちにカーソルを合わせると、その日の記録が見られます。";
 }
 
 function deleteTask(id) {
@@ -443,8 +550,14 @@ function selectedDays() {
 }
 
 function updateWeekdayState() {
-  const isWeekly = selectedMode() === "weekly";
-  elements.weekdayGroup.disabled = !isWeekly;
+  const mode = selectedMode();
+  elements.weekdayGroup.disabled = mode !== "weekly";
+
+  const isOnce = mode === "once";
+  elements.dateField.hidden = !isOnce;
+  if (isOnce && !elements.dateInput.value) {
+    elements.dateInput.value = todayKey();
+  }
 }
 
 function handleSubmit(event) {
@@ -454,6 +567,7 @@ function handleSubmit(event) {
   const name = elements.nameInput.value.trim();
   const mode = selectedMode();
   const days = mode === "weekly" ? selectedDays() : [];
+  const date = mode === "once" ? elements.dateInput.value : "";
 
   if (!name) {
     elements.formMessage.textContent = "宿題名を入力してください。";
@@ -465,6 +579,11 @@ function handleSubmit(event) {
     return;
   }
 
+  if (mode === "once" && !date) {
+    elements.formMessage.textContent = "日にちを選んでください。";
+    return;
+  }
+
   if (editingId) {
     const task = tasks.find((item) => item.id === editingId);
 
@@ -472,6 +591,10 @@ function handleSubmit(event) {
       task.name = name;
       task.mode = mode;
       task.days = days;
+      task.date = date;
+      if (typeof task.done !== "boolean") {
+        task.done = false;
+      }
     }
 
     stopEditing();
@@ -480,7 +603,9 @@ function handleSubmit(event) {
       id: createId(),
       name,
       mode,
-      days
+      days,
+      date,
+      done: false
     });
 
     elements.form.reset();
@@ -528,8 +653,10 @@ elements.cancelButton.addEventListener("click", () => {
   stopEditing();
   render();
 });
+elements.calendarGrid.addEventListener("mouseleave", resetDayDetail);
 
 backfillSummary();
 pruneOldChecks();
+pruneFinishedOnceTasks();
 updateWeekdayState();
 render();

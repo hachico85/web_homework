@@ -293,6 +293,15 @@ h2 {
   background: transparent;
 }
 
+.calendar-cell.has-detail {
+  cursor: pointer;
+}
+
+.calendar-cell.has-detail:hover {
+  border-color: var(--blue);
+  background: #eef5ff;
+}
+
 .calendar-cell.today {
   border-color: var(--ink);
   background: #fff6d9;
@@ -309,6 +318,18 @@ h2 {
   min-height: 1.1em;
   font-size: 1.05rem;
   line-height: 1.1;
+}
+
+.calendar-detail {
+  margin: 12px 0 0;
+  min-height: 1.5em;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #f3f7ff;
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.45;
 }
 
 .calendar-legend {
@@ -343,7 +364,8 @@ legend {
   font-weight: 900;
 }
 
-input[type="text"] {
+input[type="text"],
+input[type="date"] {
   width: 100%;
   min-height: 54px;
   padding: 0 14px;
@@ -354,8 +376,18 @@ input[type="text"] {
   outline: none;
 }
 
-input[type="text"]:focus {
+input[type="text"]:focus,
+input[type="date"]:focus {
   box-shadow: 0 0 0 4px rgba(76, 125, 255, 0.25);
+}
+
+.date-field {
+  display: grid;
+  gap: 6px;
+}
+
+.date-field[hidden] {
+  display: none;
 }
 
 fieldset {
@@ -367,8 +399,8 @@ fieldset {
 
 .mode-group {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .mode-group legend,
@@ -388,6 +420,15 @@ fieldset {
   border-radius: var(--radius);
   background: #eef8ff;
   font-weight: 900;
+}
+
+.radio-tile {
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 4px;
+  font-size: 0.9rem;
+  line-height: 1.15;
+  text-align: center;
 }
 
 .radio-tile input,
@@ -616,7 +657,6 @@ fieldset {
     font-size: 1.22rem;
   }
 
-  .mode-group,
   .weekday-group {
     grid-template-columns: 1fr 1fr;
   }

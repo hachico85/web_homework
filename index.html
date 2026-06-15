@@ -45,6 +45,7 @@
       <section class="calendar-card" aria-labelledby="calendarTitle">
         <h2 id="calendarTitle">今月のきろく</h2>
         <div class="calendar-grid" id="calendarGrid"></div>
+        <p class="calendar-detail" id="calendarDetail" aria-live="polite"></p>
         <p class="calendar-legend">💮 ぜんぶできた　👍 すこしできた　🍵 おやすみ</p>
       </section>
     </main>
@@ -59,6 +60,10 @@
           <fieldset class="mode-group">
             <legend>いつやる？</legend>
             <label class="radio-tile">
+              <input type="radio" name="scheduleMode" value="once">
+              <span>単発</span>
+            </label>
+            <label class="radio-tile">
               <input type="radio" name="scheduleMode" value="daily" checked>
               <span>毎日</span>
             </label>
@@ -67,6 +72,11 @@
               <span>曜日を選ぶ</span>
             </label>
           </fieldset>
+
+          <div class="date-field" id="dateField" hidden>
+            <label class="field-label" for="homeworkDate">日にち</label>
+            <input id="homeworkDate" name="homeworkDate" type="date">
+          </div>
 
           <fieldset class="weekday-group" id="weekdayGroup" disabled>
             <legend>曜日</legend>

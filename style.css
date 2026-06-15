@@ -69,16 +69,14 @@ button {
 }
 
 .eyebrow {
-  display: inline-flex;
-  margin: 0 0 8px;
-  padding: 7px 12px;
-  border: 2px solid var(--ink);
-  border-radius: var(--radius);
-  background: var(--sun);
+  display: inline-block;
+  margin: 0 0 14px;
+  padding: 1px 4px;
+  background: linear-gradient(transparent 55%, rgba(255, 216, 77, 0.9) 55%);
   color: var(--ink);
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 800;
-  box-shadow: 4px 4px 0 var(--ink);
+  letter-spacing: 0.02em;
 }
 
 h1,
@@ -99,48 +97,6 @@ h2 {
   font-size: 1.35rem;
   line-height: 1.2;
   letter-spacing: 0;
-}
-
-.mascot {
-  display: grid;
-  flex: 0 0 auto;
-  width: 104px;
-  height: 104px;
-  place-items: center;
-  border: 3px solid var(--ink);
-  border-radius: 50%;
-  background: var(--green);
-  box-shadow: 7px 7px 0 var(--ink);
-  transform: rotate(5deg);
-}
-
-.mascot span {
-  width: 54px;
-  height: 38px;
-  border: 4px solid var(--ink);
-  border-top: 0;
-  border-radius: 0 0 40px 40px;
-  background: var(--paper);
-  position: relative;
-}
-
-.mascot span::before,
-.mascot span::after {
-  content: "";
-  position: absolute;
-  top: -24px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--ink);
-}
-
-.mascot span::before {
-  left: 6px;
-}
-
-.mascot span::after {
-  right: 6px;
 }
 
 .progress-box {
@@ -179,7 +135,7 @@ h2 {
 .progress-fill {
   width: 0%;
   height: 100%;
-  border-right: 3px solid var(--ink);
+  box-shadow: inset -3px 0 0 var(--ink);
   background: repeating-linear-gradient(
     -45deg,
     var(--green) 0 16px,
@@ -188,13 +144,23 @@ h2 {
   transition: width 260ms ease;
 }
 
-.homework-area {
-  margin-top: 24px;
+.progress-fill.is-complete {
+  box-shadow: none;
 }
 
 .homework-list {
   display: grid;
   gap: 14px;
+}
+
+.progress-box .homework-list:not(:empty),
+.progress-box .empty-state {
+  margin-top: 18px;
+}
+
+.progress-box .homework-list:not(:empty) {
+  padding-top: 18px;
+  border-top: 2px dashed rgba(34, 48, 74, 0.22);
 }
 
 .homework-item {
@@ -277,38 +243,11 @@ h2 {
   font-weight: 800;
 }
 
-.popper {
-  position: relative;
-  width: 0;
-  height: 0;
-  margin: 0 auto 10px;
-  border-left: 26px solid transparent;
-  border-right: 26px solid transparent;
-  border-bottom: 62px solid var(--orange);
-  transform: rotate(18deg);
-}
-
-.popper::before,
-.popper::after {
-  content: "";
-  position: absolute;
-  top: -45px;
-  width: 42px;
-  height: 5px;
-  border-radius: 999px;
-  background: var(--pink);
-  transform-origin: left center;
-}
-
-.popper::before {
-  left: -6px;
-  transform: rotate(-42deg);
-}
-
-.popper::after {
-  left: 12px;
-  background: var(--blue);
-  transform: rotate(-78deg);
+.celebration-emoji {
+  margin-bottom: 6px;
+  font-size: 3rem;
+  line-height: 1;
+  animation: bounceIn 600ms ease both;
 }
 
 .calendar-card {
@@ -585,48 +524,45 @@ fieldset {
 
 .confetti {
   position: absolute;
-  left: 50%;
-  bottom: 12%;
-  width: 12px;
-  height: 18px;
-  border: 2px solid rgba(34, 48, 74, 0.65);
+  top: -24px;
+  width: 11px;
+  height: 16px;
+  border: 2px solid rgba(34, 48, 74, 0.5);
+  border-radius: 2px;
   opacity: 0;
-  transform: translate3d(0, 0, 0) rotate(0deg);
-  animation: crackerBurst 1570ms cubic-bezier(0.16, 0.86, 0.36, 1) forwards;
+  will-change: transform;
+  animation: confettiFall linear forwards;
 }
 
-@keyframes crackerBurst {
+@keyframes confettiFall {
   0% {
     opacity: 0;
-    transform: translate3d(0, 0, 0) rotate(0deg) scale(0.5);
+    transform: translate3d(0, -10vh, 0) rotate(0deg);
   }
 
-  10% {
+  8% {
     opacity: 1;
   }
 
-  36% {
-    opacity: 1;
-    transform:
-      translate3d(
-        calc(var(--burst-x) * 0.92),
-        var(--burst-y),
-        0
-      )
-      rotate(var(--spin))
-      scale(1.08);
+  25% {
+    transform: translate3d(var(--sway), 18vh, 0) rotate(calc(var(--spin) * 0.3));
   }
 
-  to {
+  50% {
+    transform: translate3d(calc(var(--sway) * -1), 45vh, 0) rotate(calc(var(--spin) * 0.55));
+  }
+
+  75% {
+    transform: translate3d(var(--sway), 72vh, 0) rotate(calc(var(--spin) * 0.8));
+  }
+
+  92% {
+    opacity: 1;
+  }
+
+  100% {
     opacity: 0;
-    transform:
-      translate3d(
-        var(--burst-x),
-        calc(var(--burst-y) + var(--fall-distance)),
-        0
-      )
-      rotate(calc(var(--spin) + 560deg))
-      scale(0.95);
+    transform: translate3d(0, 110vh, 0) rotate(var(--spin));
   }
 }
 
@@ -662,17 +598,6 @@ fieldset {
 @media (max-width: 560px) {
   .hero {
     align-items: flex-start;
-  }
-
-  .mascot {
-    width: 74px;
-    height: 74px;
-    box-shadow: 5px 5px 0 var(--ink);
-  }
-
-  .mascot span {
-    width: 40px;
-    height: 28px;
   }
 
   .progress-copy {

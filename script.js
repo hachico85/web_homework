@@ -194,6 +194,7 @@ function render() {
   elements.todayLabel.textContent = `${todayKey()}（${WEEKDAYS[today.getDay()]}）`;
   elements.progressText.textContent = `${completedCount} / ${totalCount} 完了`;
   elements.progressFill.style.width = `${percent}%`;
+  elements.progressFill.classList.toggle("is-complete", isComplete);
   elements.progressHint.textContent = isComplete
     ? "ぜんぶできました"
     : totalCount === 0
@@ -361,6 +362,16 @@ function stampFor(entry) {
   return entry.done === entry.total ? "💮" : "👍";
 }
 
+function todayStamp(entry) {
+  // 今日はまだ途中なので、全部終わってはなまる（💮）になったときだけ表示する。
+  // 途中・未着手のうちは無印にして「おやすみ」と誤解させない。
+  if (entry && entry.total > 0 && entry.done === entry.total) {
+    return "💮";
+  }
+
+  return "";
+}
+
 function renderCalendar() {
   const now = new Date();
   const year = now.getFullYear();
@@ -398,7 +409,7 @@ function renderCalendar() {
 
     const stamp = document.createElement("span");
     stamp.className = "calendar-stamp";
-    stamp.textContent = stampFor(summary[key]);
+    stamp.textContent = key === today ? todayStamp(summary[key]) : stampFor(summary[key]);
 
     cell.append(number, stamp);
     elements.calendarGrid.append(cell);
@@ -483,29 +494,31 @@ function handleSubmit(event) {
 
 function launchConfetti() {
   const colors = ["#ffd84d", "#ff7aa8", "#62d58b", "#8edcff", "#ff9f45", "#4c7dff"];
-  const origins = [
-    { left: "34%", bottom: "16%", direction: -1 },
-    { left: "66%", bottom: "16%", direction: 1 }
-  ];
+  const total = 90;
 
-  for (let index = 0; index < 84; index += 1) {
-    const origin = origins[index % origins.length];
-    const spread = origin.direction * (120 + Math.random() * 250);
-    const lift = -(220 + Math.random() * 270);
+  for (let index = 0; index < total; index += 1) {
     const piece = document.createElement("span");
     piece.className = "confetti";
-    piece.style.left = origin.left;
-    piece.style.bottom = origin.bottom;
+
+    const duration = 2800 + Math.random() * 2000;
+    const delay = Math.random() * 1600;
+    const width = 8 + Math.random() * 8;
+
+    piece.style.left = `${Math.random() * 100}%`;
+    piece.style.width = `${width}px`;
+    piece.style.height = `${width * (0.6 + Math.random() * 0.7)}px`;
     piece.style.background = colors[index % colors.length];
-    piece.style.animationDelay = `${Math.random() * 0.12}s`;
-    piece.style.animationDuration = `${1450 + Math.random() * 320}ms`;
-    piece.style.setProperty("--burst-x", `${spread}px`);
-    piece.style.setProperty("--burst-y", `${lift}px`);
-    piece.style.setProperty("--fall-distance", `${310 + Math.random() * 220}px`);
-    piece.style.setProperty("--spin", `${origin.direction * (280 + Math.random() * 520)}deg`);
+    piece.style.borderRadius = Math.random() < 0.35 ? "50%" : "2px";
+    piece.style.animationDuration = `${duration}ms`;
+    piece.style.animationDelay = `${delay}ms`;
+    piece.style.setProperty("--sway", `${30 + Math.random() * 60}px`);
+    piece.style.setProperty(
+      "--spin",
+      `${(Math.random() < 0.5 ? -1 : 1) * (360 + Math.random() * 540)}deg`
+    );
     elements.confettiLayer.append(piece);
 
-    window.setTimeout(() => piece.remove(), 2100);
+    window.setTimeout(() => piece.remove(), delay + duration + 400);
   }
 }
 

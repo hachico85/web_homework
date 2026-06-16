@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- 屋根 -->
+  <polygon points="32,4 4,30 60,30" fill="#FF6B6B" stroke="#e05555" stroke-width="1"/>
+  <!-- 煙突 -->
+  <rect x="42" y="12" width="7" height="14" fill="#e05555"/>
+  <!-- 壁 -->
+  <rect x="10" y="30" width="44" height="30" fill="#FFF9E6" stroke="#e0d5b0" stroke-width="1"/>
+  <!-- ドア -->
+  <rect x="26" y="42" width="12" height="18" rx="6" fill="#FFAA5E"/>
+  <!-- 窓（左） -->
+  <rect x="13" y="35" width="10" height="10" rx="2" fill="#A8D8F0" stroke="#7bbbd8" stroke-width="1"/>
+  <!-- 窓（右） -->
+  <rect x="41" y="35" width="10" height="10" rx="2" fill="#A8D8F0" stroke="#7bbbd8" stroke-width="1"/>
+  <!-- ドアノブ -->
+  <circle cx="35" cy="52" r="1.5" fill="#e08030"/>
+</svg>

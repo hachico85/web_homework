@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>今日の宿題チェック</title>
+  <title>きょうの しゅくだい</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -15,7 +15,7 @@
       <header class="hero">
         <div>
           <p class="eyebrow" id="todayLabel">今日</p>
-          <h1 id="todayTitle">今日の宿題</h1>
+          <h1 id="todayTitle">きょうの しゅくだい</h1>
         </div>
       </header>
 
@@ -31,8 +31,8 @@
         <div class="homework-list" id="homeworkList"></div>
         <div class="empty-state" id="emptyState" hidden>
           <div class="empty-icon" aria-hidden="true">✓</div>
-          <h2>今日は宿題がありません</h2>
-          <p>右の設定から、今日やる宿題を追加できます。</p>
+          <h2>きょうは しゅくだいが ないよ！</h2>
+          <p>みぎの せっていから しゅくだいを ついか できるよ。</p>
         </div>
       </section>
 
@@ -43,7 +43,11 @@
       </section>
 
       <section class="calendar-card" aria-labelledby="calendarTitle">
-        <h2 id="calendarTitle">今月のきろく</h2>
+        <div class="calendar-nav">
+          <button class="cal-nav-btn" id="calPrev" type="button" aria-label="前の月">◀</button>
+          <h2 id="calendarTitle">今月のきろく</h2>
+          <button class="cal-nav-btn" id="calNext" type="button" aria-label="次の月">▶</button>
+        </div>
         <div class="calendar-grid" id="calendarGrid"></div>
         <p class="calendar-detail" id="calendarDetail" aria-live="polite"></p>
         <p class="calendar-legend">💮 ぜんぶできた　👍 すこしできた　🍵 おやすみ</p>
@@ -52,34 +56,35 @@
 
     <aside class="settings-panel" aria-labelledby="settingsTitle">
       <div class="settings-card">
-        <h2 id="settingsTitle">設定</h2>
+        <h2 id="settingsTitle">せってい</h2>
+        <p class="settings-note">おうちのひとと せっていしよう！</p>
         <form id="homeworkForm" class="homework-form">
-          <label class="field-label" for="homeworkName">宿題名</label>
-          <input id="homeworkName" name="homeworkName" type="text" placeholder="例：音読、計算ドリル" maxlength="40" required>
+          <label class="field-label" for="homeworkName">しゅくだいの なまえ</label>
+          <input id="homeworkName" name="homeworkName" type="text" placeholder="れい：おんどく、けいさんドリル" maxlength="40" required>
 
           <fieldset class="mode-group">
             <legend>いつやる？</legend>
             <label class="radio-tile">
-              <input type="radio" name="scheduleMode" value="once">
-              <span>単発</span>
+              <input type="radio" name="scheduleMode" value="once" checked>
+              <span>１かい</span>
             </label>
             <label class="radio-tile">
-              <input type="radio" name="scheduleMode" value="daily" checked>
-              <span>毎日</span>
+              <input type="radio" name="scheduleMode" value="daily">
+              <span>まいにち</span>
             </label>
             <label class="radio-tile">
               <input type="radio" name="scheduleMode" value="weekly">
-              <span>曜日を選ぶ</span>
+              <span>ようび</span>
             </label>
           </fieldset>
 
           <div class="date-field" id="dateField" hidden>
-            <label class="field-label" for="homeworkDate">日にち</label>
+            <label class="field-label" for="homeworkDate">ひにち</label>
             <input id="homeworkDate" name="homeworkDate" type="date">
           </div>
 
           <fieldset class="weekday-group" id="weekdayGroup" disabled>
-            <legend>曜日</legend>
+            <legend>ようび</legend>
             <label><input type="checkbox" value="1">月</label>
             <label><input type="checkbox" value="2">火</label>
             <label><input type="checkbox" value="3">水</label>
@@ -90,13 +95,13 @@
           </fieldset>
 
           <p class="form-message" id="formMessage" role="status"></p>
-          <button class="add-button" id="submitButton" type="submit">宿題を追加</button>
-          <button class="cancel-button" id="cancelButton" type="button" hidden>編集をやめる</button>
+          <button class="add-button" id="submitButton" type="submit">しゅくだいを ついか</button>
+          <button class="cancel-button" id="cancelButton" type="button" hidden>やめる</button>
         </form>
       </div>
 
       <div class="registered-card">
-        <h2>登録中の宿題</h2>
+        <h2>とうろくした しゅくだい</h2>
         <div class="registered-list" id="registeredList"></div>
       </div>
     </aside>

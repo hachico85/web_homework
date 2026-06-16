@@ -1,6 +1,9 @@
 # Playwright / MCP の作業ログ（公開不要）
 .playwright-mcp/
 
+# Claude Code 作業ログ
+.agents/
+
 # OS / エディタ
 .DS_Store
 Thumbs.db

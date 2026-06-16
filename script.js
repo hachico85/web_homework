@@ -8,9 +8,9 @@ const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const DISPLAY_DAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
 
 const defaultTasks = [
-  { id: createId(), name: "音読", mode: "daily", days: [] },
-  { id: createId(), name: "計算ドリル", mode: "weekly", days: [1, 2, 3, 4, 5] },
-  { id: createId(), name: "明日の準備", mode: "daily", days: [] }
+  { id: createId(), name: "おんどく", mode: "daily", days: [] },
+  { id: createId(), name: "けいさんドリル", mode: "weekly", days: [1, 2, 3, 4, 5] },
+  { id: createId(), name: "あしたの じゅんび", mode: "daily", days: [] }
 ];
 
 const elements = {
@@ -32,6 +32,8 @@ const elements = {
   calendarTitle: document.querySelector("#calendarTitle"),
   calendarGrid: document.querySelector("#calendarGrid"),
   calendarDetail: document.querySelector("#calendarDetail"),
+  calPrev: document.querySelector("#calPrev"),
+  calNext: document.querySelector("#calNext"),
   submitButton: document.querySelector("#submitButton"),
   cancelButton: document.querySelector("#cancelButton")
 };
@@ -41,6 +43,7 @@ let checks = loadChecks();
 let summary = loadSummary();
 let celebrationShown = false;
 let editingId = null;
+let viewMonth = { year: new Date().getFullYear(), month: new Date().getMonth() };
 
 function createId() {
   if (crypto.randomUUID) {
@@ -134,6 +137,25 @@ function isDueOn(task, dateStr) {
   return false;
 }
 
+function scheduledOn(dateStr) {
+  // 未来日の「予定」表示用。単発は繰り越さず、その日ちょうどの分だけ出す。
+  return tasks.filter((task) => {
+    if (task.mode === "daily") {
+      return true;
+    }
+
+    if (task.mode === "weekly") {
+      return task.days.includes(new Date(`${dateStr}T00:00:00`).getDay());
+    }
+
+    if (task.mode === "once") {
+      return task.date === dateStr;
+    }
+
+    return false;
+  });
+}
+
 function recurringTasksForWeekday(day) {
   // 過去日の集計用。単発は日ごとの完了状態を再現できないため対象外にする。
   return tasks.filter(
@@ -174,19 +196,33 @@ function backfillSummary() {
   }
 }
 
-function pruneOldChecks() {
-  const cutoff = dateKey(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
-  let changed = false;
+function pruneOldHistory() {
+  // 先月1日より前の記録（チェック実績・サマリー）は削除する。
+  const now = new Date();
+  const cutoff = dateKey(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+  let changedChecks = false;
+  let changedSummary = false;
 
   Object.keys(checks).forEach((date) => {
     if (date < cutoff) {
       delete checks[date];
-      changed = true;
+      changedChecks = true;
     }
   });
 
-  if (changed) {
+  Object.keys(summary).forEach((date) => {
+    if (date < cutoff) {
+      delete summary[date];
+      changedSummary = true;
+    }
+  });
+
+  if (changedChecks) {
     saveChecks();
+  }
+
+  if (changedSummary) {
+    saveSummary();
   }
 }
 
@@ -220,7 +256,7 @@ function formatOnceDate(dateStr) {
 
 function scheduleLabel(task) {
   if (task.mode === "daily") {
-    return "毎日";
+    return "まいにち";
   }
 
   if (task.mode === "once") {
@@ -251,10 +287,10 @@ function render() {
   elements.progressFill.style.width = `${percent}%`;
   elements.progressFill.classList.toggle("is-complete", isComplete);
   elements.progressHint.textContent = isComplete
-    ? "ぜんぶできました"
+    ? "ぜんぶ できたね！"
     : totalCount === 0
-      ? "ゆっくり休める日です"
-      : "今日の宿題をチェックしよう";
+      ? "きょうは おやすみ！"
+      : "おわった しゅくだいを チェック！";
 
   summary[todayKey()] = {
     done: completedCount,
@@ -321,7 +357,7 @@ function renderRegisteredTasks() {
   if (tasks.length === 0) {
     const empty = document.createElement("p");
     empty.className = "registered-schedule";
-    empty.textContent = "まだ宿題が登録されていません。";
+    empty.textContent = "まだ しゅくだいが ないよ。";
     elements.registeredList.append(empty);
     return;
   }
@@ -346,7 +382,7 @@ function renderRegisteredTasks() {
     upButton.className = "move-button";
     upButton.type = "button";
     upButton.textContent = "↑";
-    upButton.setAttribute("aria-label", `${task.name}を上へ`);
+    upButton.setAttribute("aria-label", `${task.name}を うえへ`);
     upButton.disabled = index === 0;
     upButton.addEventListener("click", () => moveTask(task.id, -1));
 
@@ -354,20 +390,20 @@ function renderRegisteredTasks() {
     downButton.className = "move-button";
     downButton.type = "button";
     downButton.textContent = "↓";
-    downButton.setAttribute("aria-label", `${task.name}を下へ`);
+    downButton.setAttribute("aria-label", `${task.name}を したへ`);
     downButton.disabled = index === tasks.length - 1;
     downButton.addEventListener("click", () => moveTask(task.id, 1));
 
     const editButton = document.createElement("button");
     editButton.className = "edit-button";
     editButton.type = "button";
-    editButton.textContent = "編集";
+    editButton.textContent = "なおす";
     editButton.addEventListener("click", () => startEditing(task));
 
     const deleteButton = document.createElement("button");
     deleteButton.className = "delete-button";
     deleteButton.type = "button";
-    deleteButton.textContent = "削除";
+    deleteButton.textContent = "けす";
     deleteButton.addEventListener("click", () => deleteTask(task.id));
 
     actions.append(upButton, downButton, editButton, deleteButton);
@@ -400,7 +436,7 @@ function startEditing(task) {
   elements.dateInput.value = task.mode === "once" ? task.date || todayKey() : "";
   updateWeekdayState();
   elements.formMessage.textContent = "";
-  elements.submitButton.textContent = "保存する";
+  elements.submitButton.textContent = "ほぞん";
   elements.cancelButton.hidden = false;
   elements.nameInput.focus();
   render();
@@ -410,7 +446,7 @@ function stopEditing() {
   editingId = null;
   elements.form.reset();
   updateWeekdayState();
-  elements.submitButton.textContent = "宿題を追加";
+  elements.submitButton.textContent = "しゅくだいを ついか";
   elements.cancelButton.hidden = true;
 }
 
@@ -436,13 +472,35 @@ function todayStamp(entry) {
   return "";
 }
 
-function renderCalendar() {
+function monthBounds() {
   const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
-  const today = todayKey();
+  return {
+    newest: new Date(now.getFullYear(), now.getMonth(), 1), // 今月
+    oldest: new Date(now.getFullYear(), now.getMonth() - 1, 1) // 先月まで
+  };
+}
 
-  elements.calendarTitle.textContent = `${month + 1}月のきろく`;
+function changeMonth(delta) {
+  const moved = new Date(viewMonth.year, viewMonth.month + delta, 1);
+  const { newest, oldest } = monthBounds();
+
+  // さかのぼれるのは先月まで、進めるのは今月まで。
+  if (moved < oldest || moved > newest) {
+    return;
+  }
+
+  viewMonth = { year: moved.getFullYear(), month: moved.getMonth() };
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const { year, month } = viewMonth;
+  const today = todayKey();
+  const { newest, oldest } = monthBounds();
+
+  elements.calendarTitle.textContent = `${year}年${month + 1}月`;
+  elements.calNext.disabled = year === newest.getFullYear() && month === newest.getMonth();
+  elements.calPrev.disabled = year === oldest.getFullYear() && month === oldest.getMonth();
   elements.calendarGrid.innerHTML = "";
 
   DISPLAY_DAY_ORDER.forEach((day) => {
@@ -477,7 +535,8 @@ function renderCalendar() {
 
     cell.append(number, stamp);
 
-    if (summary[key]) {
+    const hasDetail = key > today ? scheduledOn(key).length > 0 : Boolean(summary[key]);
+    if (hasDetail) {
       cell.classList.add("has-detail");
       cell.addEventListener("mouseenter", () => showDayDetail(key));
     }
@@ -507,6 +566,16 @@ function showDayDetail(key) {
   const [year, month, day] = key.split("-").map(Number);
   const weekday = WEEKDAYS[new Date(year, month - 1, day).getDay()];
   const label = `${month}月${day}日（${weekday}）`;
+
+  // 未来の日は「予定されているタスク」を表示する。
+  if (key > todayKey()) {
+    const names = scheduledOn(key).map((task) => task.name);
+    elements.calendarDetail.textContent = names.length > 0
+      ? `${label} の よてい：${names.join("、")}`
+      : `${label} は よてい なし`;
+    return;
+  }
+
   const names = completedNamesOn(key);
   const entry = summary[key];
 
@@ -520,7 +589,7 @@ function showDayDetail(key) {
 }
 
 function resetDayDetail() {
-  elements.calendarDetail.textContent = "日にちにカーソルを合わせると、その日の記録が見られます。";
+  elements.calendarDetail.textContent = "カーソルを のせると きろくを みれるよ！";
 }
 
 function deleteTask(id) {
@@ -570,17 +639,30 @@ function handleSubmit(event) {
   const date = mode === "once" ? elements.dateInput.value : "";
 
   if (!name) {
-    elements.formMessage.textContent = "宿題名を入力してください。";
+    elements.formMessage.textContent = "しゅくだいの なまえを いれてね。";
     return;
   }
 
   if (mode === "weekly" && days.length === 0) {
-    elements.formMessage.textContent = "曜日を1つ以上選んでください。";
+    elements.formMessage.textContent = "ようびを 1つ いじょう えらんでね。";
     return;
   }
 
   if (mode === "once" && !date) {
-    elements.formMessage.textContent = "日にちを選んでください。";
+    elements.formMessage.textContent = "ひにちを えらんでね。";
+    return;
+  }
+
+  const isDuplicate = tasks.some((t) => {
+    if (editingId && t.id === editingId) return false;
+    if (t.name !== name || t.mode !== mode) return false;
+    if (mode === "weekly") return [...days].sort().join(",") === [...t.days].sort().join(",");
+    if (mode === "once") return t.date === date;
+    return true;
+  });
+
+  if (isDuplicate) {
+    elements.formMessage.textContent = "おなじ しゅくだいが もう とうろく されているよ！";
     return;
   }
 
@@ -654,9 +736,11 @@ elements.cancelButton.addEventListener("click", () => {
   render();
 });
 elements.calendarGrid.addEventListener("mouseleave", resetDayDetail);
+elements.calPrev.addEventListener("click", () => changeMonth(-1));
+elements.calNext.addEventListener("click", () => changeMonth(1));
 
+pruneOldHistory();
 backfillSummary();
-pruneOldChecks();
 pruneFinishedOnceTasks();
 updateWeekdayState();
 render();

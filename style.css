@@ -65,12 +65,12 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 22px;
+  margin-bottom: 34px;
 }
 
 .eyebrow {
   display: inline-block;
-  margin: 0 0 14px;
+  margin: 0 0 20px;
   padding: 1px 4px;
   background: linear-gradient(transparent 55%, rgba(255, 216, 77, 0.9) 55%);
   color: var(--ink);
@@ -264,6 +264,43 @@ h2 {
   font-size: 1.2rem;
 }
 
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.calendar-nav h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.cal-nav-btn {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--ink);
+  border-radius: var(--radius);
+  background: #eef8ff;
+  font-size: 0.95rem;
+  font-weight: 900;
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+.cal-nav-btn:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--ink);
+}
+
+.cal-nav-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+  box-shadow: none;
+}
+
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -343,6 +380,13 @@ h2 {
   display: grid;
   align-content: start;
   gap: 16px;
+}
+
+.settings-note {
+  margin: -8px 0 16px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 800;
 }
 
 .settings-card,
@@ -519,10 +563,9 @@ fieldset {
 }
 
 .registered-item {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   padding: 12px;
   border: 2px solid var(--ink);
   border-radius: var(--radius);
@@ -540,7 +583,6 @@ fieldset {
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
-  justify-content: flex-end;
 }
 
 .registered-name {
